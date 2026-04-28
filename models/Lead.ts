@@ -1,4 +1,5 @@
 import mongoose, { Schema, Document, Model, Types } from "mongoose";
+import { calculateLeadScore } from "@/app/_lib/scoring";
 
 export interface ILead extends Document {
   name: string;
@@ -90,17 +91,15 @@ const LeadSchema = new Schema<ILead>(
 
 // Auto-calculate score & priority before save
 LeadSchema.pre("save", function () {
-  const budget = this.budget;
-  if (budget > 20_000_000) {
-    this.score = 90;
-    this.priority = "High";
-  } else if (budget >= 10_000_000) {
-    this.score = 60;
-    this.priority = "Medium";
-  } else {
-    this.score = 30;
-    this.priority = "Low";
-  }
+  const { score, priority } = calculateLeadScore({
+    budget: this.budget,
+    source: this.source,
+    phone: this.phone,
+    notes: this.notes,
+    propertyInterest: this.propertyInterest,
+  });
+  this.score = score;
+  this.priority = priority;
 });
 
 const Lead: Model<ILead> =
