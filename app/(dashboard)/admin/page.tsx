@@ -1,4 +1,5 @@
 import { requireAdmin } from "@/app/_lib/dal";
+import FollowUpWidget from "@/app/_components/FollowUpWidget";
 
 export default async function AdminDashboardPage() {
   await requireAdmin();
@@ -36,15 +37,15 @@ export default async function AdminDashboardPage() {
         </div>
       </div>
 
-      {/* Placeholder sections */}
+      {/* Dashboard widgets */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="card">
+          <h2 className="text-lg font-semibold mb-4">📅 Upcoming Follow-ups</h2>
+          <FollowUpWidget limit={8} />
+        </div>
         <div className="card">
           <h2 className="text-lg font-semibold mb-4">Lead Distribution</h2>
           <p className="text-muted text-sm">Charts will be added in the analytics branch.</p>
-        </div>
-        <div className="card">
-          <h2 className="text-lg font-semibold mb-4">Agent Performance</h2>
-          <p className="text-muted text-sm">Performance metrics will be added in the analytics branch.</p>
         </div>
       </div>
     </div>

@@ -8,6 +8,7 @@ import DeleteLeadButton from "./DeleteButton";
 import AssignLeadButton from "./AssignButton";
 import WhatsAppButton from "@/app/_components/WhatsAppButton";
 import Timeline from "@/app/_components/Timeline";
+import FollowUpForm from "@/app/_components/FollowUpForm";
 
 function formatBudget(amount: number): string {
   if (amount >= 10_000_000) return `${(amount / 10_000_000).toFixed(1)} Crore`;
@@ -183,6 +184,34 @@ export default async function LeadDetailPage({
                 currentAgentId={assignedAgent ? String(assignedAgent._id) : undefined}
               />
             )}
+          </div>
+
+          {/* Follow-up */}
+          <div className="card">
+            <h3 className="text-sm font-semibold mb-3">Follow-up</h3>
+            {lead.followUpDate && (
+              <div className={`mb-3 rounded-lg px-3 py-2 text-sm ${
+                new Date(lead.followUpDate) < new Date(new Date().toDateString())
+                  ? "bg-danger/10 text-danger"
+                  : "bg-accent/10 text-accent"
+              }`}>
+                <div className="font-medium">
+                  {new Date(lead.followUpDate) < new Date(new Date().toDateString()) ? "⚠️ Overdue" : "📅 Scheduled"}
+                </div>
+                <div className="text-xs mt-0.5">
+                  {new Date(lead.followUpDate).toLocaleDateString("en-PK", {
+                    weekday: "short",
+                    day: "numeric",
+                    month: "long",
+                    year: "numeric",
+                  })}
+                </div>
+              </div>
+            )}
+            <FollowUpForm
+              leadId={id}
+              currentDate={lead.followUpDate ? lead.followUpDate.toISOString() : null}
+            />
           </div>
 
           {/* WhatsApp */}
