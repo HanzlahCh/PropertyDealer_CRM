@@ -3,6 +3,7 @@ import dbConnect from "@/app/_lib/db";
 import Lead from "@/models/Lead";
 import { getSession } from "@/app/_lib/session";
 import { LeadUpdateSchema } from "@/app/_lib/definitions";
+import { logActivity } from "@/app/_lib/activity-logger";
 
 // GET /api/leads/[id]
 export async function GET(
@@ -69,12 +70,26 @@ export async function PUT(
       return Response.json({ message: "Lead not found" }, { status: 404 });
     }
 
+    // Track status changes
+    const oldStatus = lead.status;
+
     // Update fields
     Object.assign(lead, parsed.data);
     lead.lastActivityAt = new Date();
     await lead.save(); // triggers scoring recalculation
 
     await lead.populate("assignedTo", "name email");
+
+    // Log activity
+    const action = parsed.data.status && parsed.data.status !== oldStatus ? "status_updated" : "updated";
+    logActivity({
+      leadId: id,
+      userId: session.userId,
+      action,
+      details: action === "status_updated"
+        ? { from: oldStatus, to: parsed.data.status }
+        : { fields: Object.keys(parsed.data) },
+    }).catch(() => {});
 
     return Response.json({ message: "Lead updated", lead });
   } catch (error) {

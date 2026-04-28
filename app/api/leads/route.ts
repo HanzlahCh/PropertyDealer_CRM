@@ -6,6 +6,7 @@ import { getSession } from "@/app/_lib/session";
 import { LeadCreateSchema } from "@/app/_lib/definitions";
 import { sendEmail } from "@/app/_lib/email";
 import { newLeadEmailTemplate } from "@/app/_lib/email-templates";
+import { logActivity } from "@/app/_lib/activity-logger";
 
 // GET /api/leads — list leads (admin: all, agent: assigned only)
 export async function GET(req: NextRequest) {
@@ -92,7 +93,13 @@ export async function POST(req: NextRequest) {
 
     await lead.populate("assignedTo", "name email");
 
-    // Fire-and-forget email to admins
+    // Fire-and-forget: log activity + email
+    logActivity({
+      leadId: String(lead._id),
+      userId: session.userId,
+      action: "created",
+      details: { name: lead.name, budget: lead.budget },
+    }).catch(() => {});
     notifyAdmins(parsed.data).catch(() => {});
 
     return Response.json(

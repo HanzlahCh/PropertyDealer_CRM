@@ -5,6 +5,7 @@ import User from "@/models/User";
 import { getSession } from "@/app/_lib/session";
 import { sendEmail } from "@/app/_lib/email";
 import { leadAssignedEmailTemplate } from "@/app/_lib/email-templates";
+import { logActivity } from "@/app/_lib/activity-logger";
 
 // POST /api/leads/[id]/assign — assign/reassign lead to an agent
 export async function POST(
@@ -55,6 +56,14 @@ export async function POST(
           budget: lead.budget,
           leadId: id,
         }),
+      }).catch(() => {});
+
+      // Log activity
+      logActivity({
+        leadId: id,
+        userId: session.userId,
+        action: "assigned",
+        details: { agentName: agent.name, agentId },
       }).catch(() => {});
     }
 
