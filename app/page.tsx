@@ -1,15 +1,17 @@
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { getSession } from "@/app/_lib/session";
 
 export default async function Home() {
-  // Check for existing session cookie and redirect accordingly.
-  // Full JWT validation will be added in the authentication branch.
-  const cookieStore = await cookies();
-  const session = cookieStore.get("session");
+  const session = await getSession();
 
-  if (session) {
+  if (!session?.userId) {
+    redirect("/login");
+  }
+
+  // Role-based redirect
+  if (session.role === "admin") {
     redirect("/admin");
   }
 
-  redirect("/login");
+  redirect("/agent");
 }

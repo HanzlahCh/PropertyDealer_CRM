@@ -32,7 +32,7 @@ export default async function proxy(req: NextRequest) {
 
   // If user is authenticated and trying to visit login/signup, redirect to dashboard
   if (isPublicRoute && isAuthenticated) {
-    const destination = session?.role === "admin" ? "/admin" : "/leads";
+    const destination = session?.role === "admin" ? "/admin" : "/agent";
     return NextResponse.redirect(new URL(destination, req.nextUrl));
   }
 
@@ -52,7 +52,7 @@ export default async function proxy(req: NextRequest) {
   );
 
   if (isAdminRoute && session?.role !== "admin") {
-    return NextResponse.redirect(new URL("/leads", req.nextUrl));
+    return NextResponse.redirect(new URL("/agent", req.nextUrl));
   }
 
   return NextResponse.next();

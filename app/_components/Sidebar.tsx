@@ -50,6 +50,15 @@ const adminNavItems = [
 
 const agentNavItems = [
   {
+    label: "Dashboard",
+    href: "/agent",
+    icon: (
+      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+        <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
+      </svg>
+    ),
+  },
+  {
     label: "My Leads",
     href: "/leads",
     icon: (
@@ -112,8 +121,8 @@ export default function Sidebar({ role, userName }: SidebarProps) {
       <nav className="flex-1 py-4 px-2 space-y-1">
         {navItems.map((item) => {
           const isActive =
-            item.href === "/admin"
-              ? pathname === "/admin"
+            item.href === "/admin" || item.href === "/agent"
+              ? pathname === item.href
               : pathname.startsWith(item.href);
           return (
             <Link

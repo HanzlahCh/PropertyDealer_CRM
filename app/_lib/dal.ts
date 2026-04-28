@@ -54,7 +54,7 @@ export async function requireAuth() {
 export async function requireAdmin() {
   const session = await verifySession();
   if (session.role !== "admin") {
-    redirect("/leads");
+    redirect("/agent");
   }
   return session;
 }
