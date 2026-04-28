@@ -7,6 +7,7 @@ import { notFound } from "next/navigation";
 import DeleteLeadButton from "./DeleteButton";
 import AssignLeadButton from "./AssignButton";
 import WhatsAppButton from "@/app/_components/WhatsAppButton";
+import Timeline from "@/app/_components/Timeline";
 
 function formatBudget(amount: number): string {
   if (amount >= 10_000_000) return `${(amount / 10_000_000).toFixed(1)} Crore`;
@@ -121,10 +122,10 @@ export default async function LeadDetailPage({
             </p>
           </div>
 
-          {/* Timeline placeholder — branch 8 */}
+          {/* Activity Timeline */}
           <div className="card">
             <h2 className="text-lg font-semibold mb-4">Activity Timeline</h2>
-            <p className="text-muted text-sm">Timeline will be added in a future update.</p>
+            <Timeline leadId={id} />
           </div>
         </div>
 
