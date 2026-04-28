@@ -1,9 +1,11 @@
 import { verifySession } from "@/app/_lib/dal";
 import dbConnect from "@/app/_lib/db";
 import Lead from "@/models/Lead";
+import User from "@/models/User";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import DeleteLeadButton from "./DeleteButton";
+import AssignLeadButton from "./AssignButton";
 
 function formatBudget(amount: number): string {
   if (amount >= 10_000_000) return `${(amount / 10_000_000).toFixed(1)} Crore`;
@@ -34,7 +36,14 @@ export default async function LeadDetailPage({
     notFound();
   }
 
-  const assignedAgent = lead.assignedTo as { _id: unknown; name: string; email: string } | null;
+  const assignedAgent = lead.assignedTo as unknown as { _id: unknown; name: string; email: string } | null;
+
+  // Fetch agents list for assignment (admin only)
+  let agents: { id: string; name: string }[] = [];
+  if (session.role === "admin") {
+    const agentDocs = await User.find({ role: "agent" }).select("name").lean();
+    agents = agentDocs.map((a) => ({ id: String(a._id), name: a.name }));
+  }
 
   return (
     <div>
@@ -153,7 +162,7 @@ export default async function LeadDetailPage({
           <div className="card">
             <h3 className="text-sm font-semibold mb-3">Assigned Agent</h3>
             {assignedAgent ? (
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 mb-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-full bg-accent/20 text-accent font-bold">
                   {assignedAgent.name.charAt(0).toUpperCase()}
                 </div>
@@ -163,7 +172,14 @@ export default async function LeadDetailPage({
                 </div>
               </div>
             ) : (
-              <p className="text-muted text-sm">Unassigned</p>
+              <p className="text-muted text-sm mb-3">Unassigned</p>
+            )}
+            {session.role === "admin" && (
+              <AssignLeadButton
+                leadId={id}
+                agents={agents}
+                currentAgentId={assignedAgent ? String(assignedAgent._id) : undefined}
+              />
             )}
           </div>
 
