@@ -4,7 +4,7 @@ export function newLeadEmailTemplate(lead: {
   phone?: string;
   propertyInterest: string;
   budget: number;
-  source: string;
+  source?: string;
 }): string {
   const budgetFormatted =
     lead.budget >= 10_000_000

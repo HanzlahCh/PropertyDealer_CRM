@@ -1,36 +1,155 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Property Dealer CRM
+
+A full-stack **Customer Relationship Management** system for property dealers built with **Next.js 16**, **MongoDB**, and **Mongoose**.
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| Framework | Next.js 16 (App Router, Turbopack) |
+| Language | TypeScript |
+| Database | MongoDB + Mongoose |
+| Auth | JWT (jose) + bcryptjs |
+| Styling | Tailwind CSS v4 |
+| Email | Nodemailer |
+| Validation | Zod |
+
+## Features
+
+- **Authentication** — JWT-based login/signup with role-based access (Admin/Agent)
+- **RBAC** — `proxy.ts` route protection, admin-only pages, role-based data filtering
+- **Lead Management** — Full CRUD with search, filters, pagination
+- **Lead Scoring** — Automatic scoring based on budget, source, and completeness
+- **Agent Management** — Admin view of all agents with assignment capability
+- **Lead Assignment** — Assign/reassign leads to agents with email notifications
+- **WhatsApp Integration** — One-click chat with pre-filled messages
+- **Email Notifications** — Nodemailer templates for new leads and assignments
+- **Activity Timeline** — Chronological audit trail on each lead
+- **Follow-up Reminders** — Set/clear follow-up dates with overdue alerts
+- **Analytics Dashboard** — Stats cards, donut charts, bar charts, agent performance
+- **Notification Bell** — Polling-based notification system with unread badges
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+
+- **Node.js** 18+ 
+- **MongoDB** running locally or a cloud instance (MongoDB Atlas)
+
+### Installation
+
+```bash
+# Clone and install
+git clone <repo-url>
+cd property_crm
+npm install
+```
+
+### Environment Setup
+
+Copy the example env file and fill in your values:
+
+```bash
+cp .env.example .env.local
+```
+
+Required variables in `.env.local`:
+
+```env
+MONGODB_URI=mongodb://localhost:27017/property_crm
+SESSION_SECRET=your-32-character-secret-key-here
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+
+# Optional — email notifications
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=your-email@gmail.com
+SMTP_PASS=your-app-password
+```
+
+### Seed the Database
+
+```bash
+npm run seed
+```
+
+This creates:
+- **Admin**: `admin@crm.com` / `admin123`
+- **Agent**: `agent@crm.com` / `agent123`
+- **8 sample leads** with realistic Pakistani property data
+- **Activity records** for the timeline
+
+### Run Development Server
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Build for Production
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run build
+npm start
+```
 
-## Learn More
+## Project Structure
 
-To learn more about Next.js, take a look at the following resources:
+```
+property_crm/
+├── app/
+│   ├── (auth)/            # Login & Signup pages
+│   │   ├── login/
+│   │   └── signup/
+│   ├── (dashboard)/       # Protected dashboard layout
+│   │   ├── admin/         # Admin dashboard & agents
+│   │   ├── agent/         # Agent dashboard
+│   │   ├── leads/         # Lead list, detail, edit, new
+│   │   └── settings/      # User settings
+│   ├── _components/       # Shared UI components
+│   ├── _lib/              # DAL, session, scoring, email
+│   ├── actions/           # Server Actions
+│   └── api/               # API Route Handlers
+│       ├── auth/
+│       ├── leads/
+│       ├── agents/
+│       ├── analytics/
+│       ├── follow-ups/
+│       └── notifications/
+├── models/                # Mongoose schemas
+│   ├── User.ts
+│   ├── Lead.ts
+│   └── Activity.ts
+├── scripts/seed.ts        # Database seeder
+├── proxy.ts               # Route protection middleware
+└── .env.example           # Environment template
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Default Credentials
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+| Role | Email | Password |
+|------|-------|----------|
+| Admin | admin@crm.com | admin123 |
+| Agent | agent@crm.com | agent123 |
 
-## Deploy on Vercel
+## API Routes
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| POST | `/api/auth/signup` | Public | Register a new user |
+| POST | `/api/auth/login` | Public | Login |
+| POST | `/api/auth/logout` | Auth | Logout |
+| GET | `/api/leads` | Auth | List leads (filtered by role) |
+| POST | `/api/leads` | Auth | Create a lead |
+| GET | `/api/leads/[id]` | Auth | Get lead details |
+| PUT | `/api/leads/[id]` | Auth | Update a lead |
+| DELETE | `/api/leads/[id]` | Admin | Delete a lead |
+| POST | `/api/leads/[id]/assign` | Admin | Assign lead to agent |
+| POST | `/api/leads/[id]/follow-up` | Auth | Set follow-up date |
+| DELETE | `/api/leads/[id]/follow-up` | Auth | Clear follow-up |
+| GET | `/api/leads/[id]/timeline` | Auth | Activity timeline |
+| GET | `/api/agents` | Admin | List all agents |
+| GET | `/api/analytics` | Admin | Dashboard analytics |
+| GET | `/api/follow-ups` | Auth | Follow-up list |
+| GET | `/api/notifications` | Auth | Notifications |

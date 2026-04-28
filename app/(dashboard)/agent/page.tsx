@@ -7,7 +7,7 @@ export default async function LeadsHomePage() {
 
   // Admins see the leads table directly, agents get a dashboard first
   if (session.role === "admin") {
-    redirect("/leads");
+    redirect("/admin");
   }
 
   return (
