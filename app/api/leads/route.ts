@@ -106,24 +106,24 @@ export async function POST(req: NextRequest) {
       { message: "Lead created successfully", lead },
       { status: 201 }
     );
+
+    // Fire-and-forget: email admin about new lead
+    async function notifyAdmins(leadData: { name: string; email: string; phone?: string; propertyInterest: string; budget: number; source?: string }) {
+      try {
+        const admins = await User.find({ role: "admin" }).select("email").lean();
+        for (const admin of admins) {
+          await sendEmail({
+            to: admin.email,
+            subject: `New Lead: ${leadData.name}`,
+            html: newLeadEmailTemplate(leadData),
+          });
+        }
+      } catch (e) {
+        console.error("Admin notification failed:", e);
+      }
+    }
   } catch (error) {
     console.error("Create lead error:", error);
     return Response.json({ message: "Internal server error" }, { status: 500 });
-  }
-
-  // Fire-and-forget: email admin about new lead
-  async function notifyAdmins(leadData: typeof parsed.data) {
-    try {
-      const admins = await User.find({ role: "admin" }).select("email").lean();
-      for (const admin of admins) {
-        await sendEmail({
-          to: admin.email,
-          subject: `New Lead: ${leadData.name}`,
-          html: newLeadEmailTemplate(leadData),
-        });
-      }
-    } catch (e) {
-      console.error("Admin notification failed:", e);
-    }
   }
 }
