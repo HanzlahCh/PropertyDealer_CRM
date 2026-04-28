@@ -6,6 +6,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import DeleteLeadButton from "./DeleteButton";
 import AssignLeadButton from "./AssignButton";
+import WhatsAppButton from "@/app/_components/WhatsAppButton";
 
 function formatBudget(amount: number): string {
   if (amount >= 10_000_000) return `${(amount / 10_000_000).toFixed(1)} Crore`;
@@ -183,16 +184,13 @@ export default async function LeadDetailPage({
             )}
           </div>
 
-          {/* WhatsApp placeholder — branch 7 */}
+          {/* WhatsApp */}
           {lead.phone && (
-            <a
-              href={`https://wa.me/${lead.phone}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn-primary w-full"
-            >
-              💬 Chat on WhatsApp
-            </a>
+            <WhatsAppButton
+              phone={lead.phone}
+              leadName={lead.name}
+              className="w-full justify-center"
+            />
           )}
         </div>
       </div>
