@@ -1,15 +1,15 @@
-"use server";
-
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
-export default function Home() {
-  // Minimal landing redirect. Once session management is implemented
-  // this will validate the JWT and redirect to the proper dashboard.
-  const ck = cookies();
-  const session = ck.get("session");
+export default async function Home() {
+  // Check for existing session cookie and redirect accordingly.
+  // Full JWT validation will be added in the authentication branch.
+  const cookieStore = await cookies();
+  const session = cookieStore.get("session");
+
   if (session) {
     redirect("/admin");
   }
+
   redirect("/login");
 }

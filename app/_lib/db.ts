@@ -8,25 +8,28 @@ if (!MONGODB_URI) {
   );
 }
 
-type MongooseCached = {
+interface MongooseCached {
   conn: typeof mongoose | null;
   promise: Promise<typeof mongoose> | null;
-};
+}
 
 declare global {
   // eslint-disable-next-line no-var
   var _mongoose: MongooseCached | undefined;
 }
 
-const cached = global._mongoose || (global._mongoose = { conn: null, promise: null });
+const cached: MongooseCached =
+  global._mongoose || (global._mongoose = { conn: null, promise: null });
 
-async function connect() {
+export default async function dbConnect(): Promise<typeof mongoose> {
   if (cached.conn) return cached.conn;
+
   if (!cached.promise) {
-    cached.promise = mongoose.connect(MONGODB_URI).then((m) => m);
+    cached.promise = mongoose.connect(MONGODB_URI as string, {
+      bufferCommands: false,
+    });
   }
+
   cached.conn = await cached.promise;
   return cached.conn;
 }
-
-export default connect;
