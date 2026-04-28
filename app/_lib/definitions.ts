@@ -49,3 +49,22 @@ export interface SessionPayload {
   role: "admin" | "agent";
   expiresAt: Date;
 }
+
+// ── Lead schemas ──
+
+export const LeadCreateSchema = z.object({
+  name: z.string().min(1, { message: "Name is required" }).trim(),
+  email: z.string().email({ message: "Valid email required" }).trim().toLowerCase(),
+  phone: z.string().optional().default(""),
+  propertyInterest: z.string().min(1, { message: "Property interest is required" }).trim(),
+  budget: z.coerce.number().min(0, { message: "Budget must be positive" }),
+  status: z.enum(["New", "Contacted", "Qualified", "Negotiation", "Closed-Won", "Closed-Lost"]).default("New"),
+  notes: z.string().optional().default(""),
+  source: z.enum(["Facebook", "Walk-in", "Website", "Referral", "Other"]).default("Other"),
+  assignedTo: z.string().optional(),
+});
+
+export const LeadUpdateSchema = LeadCreateSchema.partial();
+
+export type LeadCreateData = z.infer<typeof LeadCreateSchema>;
+export type LeadUpdateData = z.infer<typeof LeadUpdateSchema>;
