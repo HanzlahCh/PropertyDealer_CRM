@@ -1,8 +1,11 @@
 import { NextRequest } from "next/server";
 import dbConnect from "@/app/_lib/db";
 import Lead from "@/models/Lead";
+import User from "@/models/User";
 import { getSession } from "@/app/_lib/session";
 import { LeadCreateSchema } from "@/app/_lib/definitions";
+import { sendEmail } from "@/app/_lib/email";
+import { newLeadEmailTemplate } from "@/app/_lib/email-templates";
 
 // GET /api/leads — list leads (admin: all, agent: assigned only)
 export async function GET(req: NextRequest) {
@@ -89,6 +92,9 @@ export async function POST(req: NextRequest) {
 
     await lead.populate("assignedTo", "name email");
 
+    // Fire-and-forget email to admins
+    notifyAdmins(parsed.data).catch(() => {});
+
     return Response.json(
       { message: "Lead created successfully", lead },
       { status: 201 }
@@ -96,5 +102,21 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     console.error("Create lead error:", error);
     return Response.json({ message: "Internal server error" }, { status: 500 });
+  }
+
+  // Fire-and-forget: email admin about new lead
+  async function notifyAdmins(leadData: typeof parsed.data) {
+    try {
+      const admins = await User.find({ role: "admin" }).select("email").lean();
+      for (const admin of admins) {
+        await sendEmail({
+          to: admin.email,
+          subject: `New Lead: ${leadData.name}`,
+          html: newLeadEmailTemplate(leadData),
+        });
+      }
+    } catch (e) {
+      console.error("Admin notification failed:", e);
+    }
   }
 }

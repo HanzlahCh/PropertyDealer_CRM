@@ -1,7 +1,10 @@
 import { NextRequest } from "next/server";
 import dbConnect from "@/app/_lib/db";
 import Lead from "@/models/Lead";
+import User from "@/models/User";
 import { getSession } from "@/app/_lib/session";
+import { sendEmail } from "@/app/_lib/email";
+import { leadAssignedEmailTemplate } from "@/app/_lib/email-templates";
 
 // POST /api/leads/[id]/assign — assign/reassign lead to an agent
 export async function POST(
@@ -37,6 +40,23 @@ export async function POST(
     await lead.save();
 
     await lead.populate("assignedTo", "name email");
+
+    // Fire-and-forget email to assigned agent
+    const agent = await User.findById(agentId).select("name email").lean();
+    if (agent) {
+      sendEmail({
+        to: agent.email,
+        subject: `Lead Assigned: ${lead.name}`,
+        html: leadAssignedEmailTemplate({
+          agentName: agent.name,
+          leadName: lead.name,
+          leadEmail: lead.email,
+          propertyInterest: lead.propertyInterest,
+          budget: lead.budget,
+          leadId: id,
+        }),
+      }).catch(() => {});
+    }
 
     return Response.json({ message: "Lead assigned successfully", lead });
   } catch (error) {
