@@ -153,3 +153,5 @@ property_crm/
 | GET | `/api/analytics` | Admin | Dashboard analytics |
 | GET | `/api/follow-ups` | Auth | Follow-up list |
 | GET | `/api/notifications` | Auth | Notifications |
+
+## App is Live 
