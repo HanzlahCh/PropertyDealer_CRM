@@ -19,6 +19,7 @@ export async function GET(req: NextRequest) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const query: any = {
       followUpDate: { $ne: null },
+      status: { $nin: ["Closed-Won", "Closed-Lost"] },
     };
 
     if (session.role === "agent") {
@@ -33,7 +34,6 @@ export async function GET(req: NextRequest) {
       query.followUpDate = { $gte: todayStart, $lt: todayEnd };
     } else if (filter === "overdue") {
       query.followUpDate = { $lt: todayStart };
-      query.status = { $nin: ["Closed-Won", "Closed-Lost"] };
     } else if (filter === "upcoming") {
       query.followUpDate = { $gte: todayEnd };
     }

@@ -78,58 +78,87 @@ export default async function LeadsPage({
             {total} lead{total !== 1 ? "s" : ""} found
           </p>
         </div>
-        <Link href="/leads/new" className="btn-primary">
-          + New Lead
-        </Link>
+        <div className="flex gap-2">
+          <a
+            href="/api/leads/export"
+            className="btn-secondary text-sm"
+            download
+          >
+            📥 Export CSV
+          </a>
+          {session.role === "admin" && (
+            <Link href="/leads/new" className="btn-primary">
+              + New Lead
+            </Link>
+          )}
+        </div>
       </div>
 
       {/* Filters */}
-      <div className="mb-6">
-        <form className="flex flex-wrap gap-3" method="GET">
-          <input
-            name="search"
-            type="text"
-            defaultValue={params.search}
-            placeholder="Search leads..."
-            className="input-field max-w-xs"
-          />
-          <select
-            name="status"
-            defaultValue={params.status || ""}
-            className="input-field w-auto"
-          >
-            <option value="">All Status</option>
-            <option value="New">New</option>
-            <option value="Contacted">Contacted</option>
-            <option value="Qualified">Qualified</option>
-            <option value="Negotiation">Negotiation</option>
-            <option value="Closed-Won">Closed-Won</option>
-            <option value="Closed-Lost">Closed-Lost</option>
-          </select>
-          <select
-            name="priority"
-            defaultValue={params.priority || ""}
-            className="input-field w-auto"
-          >
-            <option value="">All Priority</option>
-            <option value="High">High</option>
-            <option value="Medium">Medium</option>
-            <option value="Low">Low</option>
-          </select>
-          <select
-            name="source"
-            defaultValue={params.source || ""}
-            className="input-field w-auto"
-          >
-            <option value="">All Sources</option>
-            <option value="Facebook">Facebook</option>
-            <option value="Walk-in">Walk-in</option>
-            <option value="Website">Website</option>
-            <option value="Referral">Referral</option>
-            <option value="Other">Other</option>
-          </select>
-          <button type="submit" className="btn-primary">Filter</button>
-          <Link href="/leads" className="btn-secondary">Clear</Link>
+      <div className="card mb-6">
+        <form method="GET" className="space-y-4">
+          {/* Search bar — full width */}
+          <div className="relative">
+            <svg xmlns="http://www.w3.org/2000/svg" className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
+            </svg>
+            <input
+              name="search"
+              type="text"
+              defaultValue={params.search}
+              placeholder="Search by name, email, or property..."
+              className="input-field pl-10"
+            />
+          </div>
+
+          {/* 3 dropdowns in a row */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <select
+              name="status"
+              defaultValue={params.status || ""}
+              className="input-field"
+            >
+              <option value="">All Status</option>
+              <option value="New">New</option>
+              <option value="Contacted">Contacted</option>
+              <option value="Qualified">Qualified</option>
+              <option value="Negotiation">Negotiation</option>
+              <option value="Closed-Won">Closed-Won</option>
+              <option value="Closed-Lost">Closed-Lost</option>
+            </select>
+            <select
+              name="priority"
+              defaultValue={params.priority || ""}
+              className="input-field"
+            >
+              <option value="">All Priority</option>
+              <option value="High">High</option>
+              <option value="Medium">Medium</option>
+              <option value="Low">Low</option>
+            </select>
+            <select
+              name="source"
+              defaultValue={params.source || ""}
+              className="input-field"
+            >
+              <option value="">All Sources</option>
+              <option value="Facebook">Facebook</option>
+              <option value="Walk-in">Walk-in</option>
+              <option value="Website">Website</option>
+              <option value="Referral">Referral</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+
+          {/* Action buttons */}
+          <div className="flex gap-2">
+            <button type="submit" className="btn-primary text-sm">
+              🔍 Apply Filters
+            </button>
+            <Link href="/leads" className="btn-secondary text-sm">
+              ✕ Clear
+            </Link>
+          </div>
         </form>
       </div>
 

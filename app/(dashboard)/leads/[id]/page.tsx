@@ -9,6 +9,7 @@ import AssignLeadButton from "./AssignButton";
 import WhatsAppButton from "@/app/_components/WhatsAppButton";
 import Timeline from "@/app/_components/Timeline";
 import FollowUpForm from "@/app/_components/FollowUpForm";
+import StatusUpdateButton from "@/app/_components/StatusUpdateButton";
 
 function formatBudget(amount: number): string {
   if (amount >= 10_000_000) return `${(amount / 10_000_000).toFixed(1)} Crore`;
@@ -60,9 +61,11 @@ export default async function LeadDetailPage({
           <p className="text-muted text-sm">{lead.email}</p>
         </div>
         <div className="flex gap-2">
-          <Link href={`/leads/${id}/edit`} className="btn-primary">
-            Edit Lead
-          </Link>
+          {session.role === "admin" && (
+            <Link href={`/leads/${id}/edit`} className="btn-primary">
+              Edit Lead
+            </Link>
+          )}
           {session.role === "admin" && (
             <DeleteLeadButton leadId={id} />
           )}
@@ -159,6 +162,8 @@ export default async function LeadDetailPage({
                 <span className="font-bold">{lead.score}</span>
               </div>
             </div>
+            {/* Status update for agents */}
+            <StatusUpdateButton leadId={id} currentStatus={lead.status} />
           </div>
 
           {/* Assigned agent */}

@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { decrypt } from "@/app/_lib/session";
-import { cookies } from "next/headers";
 
 // Routes that require NO authentication
 const publicRoutes = ["/login", "/signup"];
@@ -21,7 +20,7 @@ export default async function proxy(req: NextRequest) {
   }
 
   // Decrypt session from cookie
-  const cookie = (await cookies()).get("session")?.value;
+  const cookie = req.cookies.get("session")?.value;
   const session = await decrypt(cookie);
   const isAuthenticated = !!session?.userId;
 

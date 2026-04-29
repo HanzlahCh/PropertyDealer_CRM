@@ -25,11 +25,28 @@ export default async function dbConnect(): Promise<typeof mongoose> {
   if (cached.conn) return cached.conn;
 
   if (!cached.promise) {
-    cached.promise = mongoose.connect(MONGODB_URI as string, {
-      bufferCommands: false,
-    });
+    cached.promise = mongoose
+      .connect(MONGODB_URI as string, {
+        bufferCommands: false,
+      })
+      .catch((error: unknown) => {
+        cached.promise = null;
+
+        if (error instanceof Error) {
+          throw new Error(
+            `Unable to connect to MongoDB at ${MONGODB_URI}: ${error.message}`
+          );
+        }
+
+        throw new Error(`Unable to connect to MongoDB at ${MONGODB_URI}`);
+      });
   }
 
-  cached.conn = await cached.promise;
-  return cached.conn;
+  try {
+    cached.conn = await cached.promise;
+    return cached.conn;
+  } catch (error) {
+    cached.promise = null;
+    throw error;
+  }
 }

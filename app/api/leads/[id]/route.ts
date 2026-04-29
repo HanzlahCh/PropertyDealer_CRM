@@ -70,6 +70,11 @@ export async function PUT(
       return Response.json({ message: "Lead not found" }, { status: 404 });
     }
 
+    // Agents can only update their assigned leads
+    if (session.role === "agent" && String(lead.assignedTo) !== session.userId) {
+      return Response.json({ message: "Forbidden" }, { status: 403 });
+    }
+
     // Track status changes
     const oldStatus = lead.status;
 

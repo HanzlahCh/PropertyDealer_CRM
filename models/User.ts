@@ -3,6 +3,7 @@ import mongoose, { Schema, Document, Model } from "mongoose";
 export interface IUser extends Document {
   name: string;
   email: string;
+  phone: string;
   password: string;
   role: "admin" | "agent";
   createdAt: Date;
@@ -24,6 +25,11 @@ const UserSchema = new Schema<IUser>(
       lowercase: true,
       trim: true,
       match: [/^\S+@\S+\.\S+$/, "Please enter a valid email"],
+    },
+    phone: {
+      type: String,
+      default: "",
+      trim: true,
     },
     password: {
       type: String,

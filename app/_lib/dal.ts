@@ -28,7 +28,7 @@ export const getUser = cache(async () => {
   try {
     await dbConnect();
     const user = await User.findById(session.userId)
-      .select("name email role createdAt")
+      .select("name email phone role createdAt")
       .lean();
 
     if (!user) return null;
@@ -37,6 +37,7 @@ export const getUser = cache(async () => {
       id: String(user._id),
       name: user.name,
       email: user.email,
+      phone: user.phone || "",
       role: user.role,
       createdAt: user.createdAt,
     };

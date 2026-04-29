@@ -2,6 +2,11 @@
 
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
+import { verifySession } from "@/app/_lib/dal";
+import dbConnect from "@/app/_lib/db";
+import Lead from "@/models/Lead";
+import { LeadCreateSchema, LeadUpdateSchema } from "@/app/_lib/definitions";
+import { logActivity } from "@/app/_lib/activity-logger";
 import type { FormState } from "@/app/_lib/definitions";
 
 // ── Create lead ──
@@ -9,7 +14,9 @@ export async function createLeadAction(
   _prevState: FormState,
   formData: FormData
 ): Promise<FormState> {
-  const body = {
+  const session = await verifySession();
+
+  const raw = {
     name: formData.get("name") as string,
     email: formData.get("email") as string,
     phone: formData.get("phone") as string,
@@ -18,20 +25,28 @@ export async function createLeadAction(
     status: formData.get("status") as string,
     notes: formData.get("notes") as string,
     source: formData.get("source") as string,
-    assignedTo: formData.get("assignedTo") as string || undefined,
+    assignedTo: (formData.get("assignedTo") as string) || undefined,
   };
 
-  const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/leads`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
-
-  const data = await res.json();
-
-  if (!res.ok) {
-    return { errors: data.errors, message: data.message || "Failed to create lead" };
+  const parsed = LeadCreateSchema.safeParse(raw);
+  if (!parsed.success) {
+    return {
+      errors: parsed.error.flatten().fieldErrors,
+      message: "Validation failed",
+    };
   }
+
+  await dbConnect();
+
+  const lead = new Lead(parsed.data);
+  await lead.save();
+
+  logActivity({
+    leadId: String(lead._id),
+    userId: session.userId,
+    action: "created",
+    details: { name: lead.name, budget: lead.budget },
+  }).catch(() => {});
 
   revalidatePath("/leads");
   redirect("/leads");
@@ -43,24 +58,49 @@ export async function updateLeadAction(
   _prevState: FormState,
   formData: FormData
 ): Promise<FormState> {
-  const body: Record<string, unknown> = {};
+  const session = await verifySession();
+
+  const raw: Record<string, unknown> = {};
   for (const [key, value] of formData.entries()) {
     if (value !== "" && value !== null) {
-      body[key] = key === "budget" ? Number(value) : value;
+      raw[key] = key === "budget" ? Number(value) : value;
     }
   }
 
-  const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/leads/${leadId}`, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
-
-  const data = await res.json();
-
-  if (!res.ok) {
-    return { errors: data.errors, message: data.message || "Failed to update lead" };
+  const parsed = LeadUpdateSchema.safeParse(raw);
+  if (!parsed.success) {
+    return {
+      errors: parsed.error.flatten().fieldErrors,
+      message: "Validation failed",
+    };
   }
+
+  await dbConnect();
+
+  const lead = await Lead.findById(leadId);
+  if (!lead) {
+    return { message: "Lead not found" };
+  }
+
+  // Agents can only update their assigned leads
+  if (session.role === "agent" && String(lead.assignedTo) !== session.userId) {
+    return { message: "Forbidden" };
+  }
+
+  const oldStatus = lead.status;
+  Object.assign(lead, parsed.data);
+  lead.lastActivityAt = new Date();
+  await lead.save();
+
+  const action = parsed.data.status && parsed.data.status !== oldStatus ? "status_updated" : "updated";
+  logActivity({
+    leadId,
+    userId: session.userId,
+    action,
+    details: action === "status_updated"
+      ? { from: oldStatus, to: parsed.data.status }
+      : { fields: Object.keys(parsed.data) },
+  }).catch(() => {});
 
   revalidatePath("/leads");
   revalidatePath(`/leads/${leadId}`);
@@ -69,13 +109,17 @@ export async function updateLeadAction(
 
 // ── Delete lead ──
 export async function deleteLeadAction(leadId: string): Promise<FormState> {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/leads/${leadId}`, {
-    method: "DELETE",
-  });
+  const session = await verifySession();
 
-  if (!res.ok) {
-    const data = await res.json();
-    return { message: data.message || "Failed to delete lead" };
+  if (session.role !== "admin") {
+    return { message: "Only admins can delete leads" };
+  }
+
+  await dbConnect();
+
+  const lead = await Lead.findByIdAndDelete(leadId);
+  if (!lead) {
+    return { message: "Lead not found" };
   }
 
   revalidatePath("/leads");
